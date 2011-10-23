@@ -25,14 +25,16 @@ package anhttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.net.BindException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 /**
  * Default implementation of {@link SimpleHttpServer}
@@ -45,18 +47,31 @@ import java.util.Map;
  */
 public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
+    //HTTP request method HEAD
     public static final String HTTP_HEAD = "HEAD";
+
+    //Server info
     public static final String SERVER_HEADER_NAME = "Server";
-    public static final String SERVER_NAME = "SimpleHttpServer";
+    public static final String SERVER_NAME = "anhttpserver";
     public static final String SERVER_VERSION = "0.2";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
+
+    //Default config
     public static final int DEFAULT_PORT = 8000;
     public static final String DEFAULT_HOST = "localhost";
+    public static final int DEFAULT_MAX_THREADS_COUNT = 1;
+
     public static final String HTTP_PREFIX = "http://";
     public static final String PORT_DELIMITER = ":";
 
+    private static final Log log = LogFactory.getLog(DefaultSimpleHttpServer.class);
+
     private HttpServer httpServer;
+
     private int port = DEFAULT_PORT;
+    private String host = DEFAULT_HOST;
+    private int maxThreads = DEFAULT_MAX_THREADS_COUNT;
+
     private Map<String, SimpleHttpHandler> handlers = new HashMap<String, SimpleHttpHandler>();
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
 
@@ -66,19 +81,21 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     private HttpHandler defaultHandler = new HttpHandler() {
 
         private void logRequest(HttpExchange httpExchange) {
-            //request URI
-            System.out.println("=== SIMPLE-HTTP-SERVER REQUEST URI: " + httpExchange.getRequestURI().toString());
+            if (log.isDebugEnabled()) {
+                //request URI
+                log.debug(String.format("%s. request URI: %s", SERVER_NAME, httpExchange.getRequestURI().toString()));
 
-            //request headers
-            System.out.println("=== SIMPLE-HTTP-SERVER REQUEST HEADERS: ");
-            for (Map.Entry<String, List<String>> entry : httpExchange.getRequestHeaders().entrySet()) {
-                for (String value: entry.getValue()) {
-                    System.out.println(String.format("==== [%s: %s]", entry.getKey(), value));
+                //request headers
+                log.debug(String.format("%s. request headers:", SERVER_NAME));
+                for (Map.Entry<String, List<String>> entry : httpExchange.getRequestHeaders().entrySet()) {
+                    for (String value : entry.getValue()) {
+                        log.debug(String.format("[%s: %s]", entry.getKey(), value));
+                    }
                 }
-            }
 
-            //request method
-            System.out.println("=== SIMPLE-HTTP-SERVER REQUEST METHOD: " + httpExchange.getRequestMethod());
+                //request method
+                log.debug(String.format("%s. request method: %s", SERVER_NAME, httpExchange.getRequestMethod()));
+            }
         }
 
         private void internalHandleRequest(SimpleHttpHandler handler, HttpExchange httpExchange) throws IOException {
@@ -137,22 +154,10 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                 if (httpServer == null) {
                     try {
                         httpServer = HttpServer.create();
+                        httpServer.setExecutor(Executors.newFixedThreadPool(maxThreads));
+                        httpServer.bind(new InetSocketAddress(host, port), 0);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
-                    }
-
-                    boolean bound = false;
-
-                    while (!bound) {
-                        try {
-                            httpServer.bind(new InetSocketAddress(DEFAULT_HOST, port), 0);
-                            bound = true;
-                            System.out.println(String.format("=== SIMPLE-HTTP-SERVER ACCEPT CONNECTIONS ON PORT: %s", port));
-                        } catch (BindException e) {
-                            port++;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
                     }
                 }
             }
@@ -160,7 +165,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     }
 
     public String getBaseUrl() {
-        return (new StringBuilder()).append(HTTP_PREFIX).append(DEFAULT_HOST).append(PORT_DELIMITER).append(port).toString();
+        return (new StringBuilder()).append(HTTP_PREFIX).append(host).append(PORT_DELIMITER).append(port).toString();
     }
 
     public void start() {
@@ -180,6 +185,22 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
     public int getPort() {
         return port;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getMaxThreads() {
+        return maxThreads;
+    }
+
+    public void setMaxThreads(int maxThreads) {
+        this.maxThreads = maxThreads;
     }
 
     public void addHandler(String path, SimpleHttpHandler httpHandler) {

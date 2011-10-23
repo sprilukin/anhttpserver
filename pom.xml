@@ -27,9 +27,10 @@
     <groupId>anhttpserver</groupId>
     <artifactId>anhttpserver</artifactId>
     <packaging>jar</packaging>
-    <version>0.1</version>
+    <version>0.2</version>
     <name>Another HTTP Server</name>
     <description>A lighweight wrapper on top of Java 6 HTTP Server for easy functional testing</description>
+    <url>https://github.com/sprilukin/anhttpserver</url>
 	
     <licenses>
         <license>
@@ -61,11 +62,18 @@
         </snapshotRepository>
     </distributionManagement>
 
-    <scm>
-        <developerConnection>scm:git:[fetch=]git://github.com/sprilukin/anhttpserver.git[push=]git@github.com:sprilukin/anhttpserver.git</developerConnection>
-    </scm>
-
     <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

@@ -1,6 +1,6 @@
 # Anhttpserver library
 
-## anhttpserver library (acronym for "Another HTTP Server") is a lighweight wrapper on top of Java 6 HTTP Server for easy functional testing
+## anhttpserver library (acronym for "Another HTTP Server") is a lightweight wrapper on top of Java 6 HTTP Server for easy functional testing
 
 ### Example
 
@@ -21,7 +21,7 @@
     <dependency>
         <groupId>anhttpserver</groupId>
         <artifactId>anhttpserver</artifactId>
-        <version>0.1</version>
+        <version>0.2</version>
     </dependency>
 
 NOTE: you need to add a maven repository to your pom.xml

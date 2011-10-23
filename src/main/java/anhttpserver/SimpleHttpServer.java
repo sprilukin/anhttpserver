@@ -51,7 +51,12 @@ public interface SimpleHttpServer {
     public void stop();
 
     /**
-     * Set port which HTTP server will listen
+     * <p>Set port which HTTP server will listen.
+     * Default is {@code 8000}.</p>
+     *
+     * <p>Will take effect only BEFORE first call to
+     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     *
      * @param port tcp port number
      */
     public void setPort(int port);
@@ -64,6 +69,42 @@ public interface SimpleHttpServer {
      * @return current port
      */
     public int getPort();
+
+    /**
+     * Return current host.
+     *
+     * @return current host
+     */
+    public String getHost();
+
+    /**
+     * Set host on which HTTP Server will listen.
+     * Default is {@code localhost}
+     *
+     * <p>Will take effect only BEFORE first call to
+     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     *
+     * @param host host to set
+     */
+    public void setHost(String host);
+
+    /**
+     * Return current value of maximum threads count.
+     *
+     * @return max threads count
+     */
+    public int getMaxThreads();
+
+    /**
+     * Set max threads count for server
+     * Default is {@code 1}
+     *
+     * <p>Will take effect only BEFORE first call to
+     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     *
+     * @param maxThreads max count of threads
+     */
+    public void setMaxThreads(int maxThreads);
 
     /**
      * For given {@code path} set instance of {@link SimpleHttpHandler}
