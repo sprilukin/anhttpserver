@@ -27,7 +27,7 @@
     <groupId>anhttpserver</groupId>
     <artifactId>anhttpserver</artifactId>
     <packaging>jar</packaging>
-    <version>0.2</version>
+    <version>0.2.1</version>
     <name>Another HTTP Server</name>
     <description>A lighweight wrapper on top of Java 6 HTTP Server for easy functional testing</description>
     <url>https://github.com/sprilukin/anhttpserver</url>

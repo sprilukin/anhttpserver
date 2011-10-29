@@ -23,6 +23,8 @@
 package anhttpserver;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,18 +34,37 @@ import java.net.URL;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Very basic test for {@link DefaultSimpleHttpServer}
+ * Very basic tests for {@link DefaultSimpleHttpServer}
  *
  * @author Sergey Prilukin
  */
 public class ServerTest {
 
-    @Test
-    public void basicServerTest() throws Exception {
-        SimpleHttpServer server = new DefaultSimpleHttpServer();
+    private SimpleHttpServer server;
+
+    @Before
+    public void init() {
+        server = new DefaultSimpleHttpServer();
         server.setHost("0.0.0.0");
         server.setPort(9999);
         server.setMaxThreads(3);
+        server.start();
+    }
+
+    @After
+    public void finish() {
+        server.stop();
+    }
+
+    private String getResult(String urlString) throws Exception {
+        InputStream is = (new URL(urlString)).openStream();
+        String result = IOUtils.toString(is);
+        is.close();
+        return result;
+    }
+
+    @Test
+    public void basicServerTest() throws Exception {
 
         server.addHandler("/", new SimpleHttpHandlerAdapter() {
             @Override
@@ -53,16 +74,51 @@ public class ServerTest {
             }
         });
 
-        server.start();
+        assertEquals("Hello world!", getResult("http://localhost:9999"));
+    }
 
-        URL url = new URL("http://localhost:9999");
-        InputStream is = url.openStream();
-        String result = IOUtils.toString(is);
+    @Test(expected = java.io.FileNotFoundException.class)
+    public void testHandlerNotFound() throws Exception {
+        server.addHandler("/index1", new SimpleHttpHandlerAdapter() {
+            @Override
+            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+                return httpRequestContext.getRequestURI().getPath().getBytes();
+            }
+        });
 
-        //Releasing resources
-        is.close();
-        server.stop();
+        getResult("http://localhost:9999/index");
+    }
 
-        assertEquals("Hello world!", result);
+    @Test
+    public void testCascadingPath() throws Exception {
+        server.addHandler("/", new SimpleHttpHandlerAdapter() {
+            @Override
+            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+                return httpRequestContext.getRequestURI().getPath().getBytes();
+            }
+        });
+
+        server.addHandler("/path1", new SimpleHttpHandlerAdapter() {
+            @Override
+            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+                return "path1".getBytes();
+            }
+        });
+
+        server.addHandler("/path1/path2", new SimpleHttpHandlerAdapter() {
+            @Override
+            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+                return "path2".getBytes();
+            }
+        });
+
+        assertEquals("/", getResult("http://localhost:9999/"));
+        assertEquals("/", getResult("http://localhost:9999"));
+        assertEquals("/index", getResult("http://localhost:9999/index"));
+        assertEquals("/index/test", getResult("http://localhost:9999/index/test"));
+        assertEquals("path1", getResult("http://localhost:9999/path1"));
+        assertEquals("path1", getResult("http://localhost:9999/path1/path3"));
+        assertEquals("path2", getResult("http://localhost:9999/path1/path2"));
+        assertEquals("path2", getResult("http://localhost:9999/path1/path2/path3"));
     }
 }
