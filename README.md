@@ -21,7 +21,7 @@
     <dependency>
         <groupId>anhttpserver</groupId>
         <artifactId>anhttpserver</artifactId>
-        <version>0.2.1</version>
+        <version>0.2.2</version>
     </dependency>
 
 NOTE: you need to add a maven repository to your pom.xml

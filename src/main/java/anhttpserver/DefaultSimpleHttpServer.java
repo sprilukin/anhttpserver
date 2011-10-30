@@ -117,12 +117,13 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                 }
             }
 
-
-            httpExchange.sendResponseHeaders(handler.getResponseCode(httpRequestContext), response != null ? response.length : 0);
-
             //Do not write response body for HTTP HEAD request
-            if (response != null && response.length > 0
-                    && !HTTP_HEAD.equals(httpExchange.getRequestMethod())) {
+            int responseLength =
+                    response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod()) ? response.length : 0;
+
+            httpExchange.sendResponseHeaders(handler.getResponseCode(httpRequestContext), responseLength);
+
+            if (responseLength > 0) {
                 httpExchange.getResponseBody().write(response);
             }
         }
