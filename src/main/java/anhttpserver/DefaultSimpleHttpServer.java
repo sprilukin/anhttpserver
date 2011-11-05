@@ -53,7 +53,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     //Server info
     public static final String SERVER_HEADER_NAME = "Server";
     public static final String SERVER_NAME = "anhttpserver";
-    public static final String SERVER_VERSION = "0.2.1";
+    public static final String SERVER_VERSION = "0.2.2";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
 
     //Default config
@@ -84,18 +84,17 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         private void logRequest(HttpExchange httpExchange) {
             if (log.isDebugEnabled()) {
                 //request URI
-                log.debug(String.format("%s. request URI: %s", SERVER_NAME, httpExchange.getRequestURI().toString()));
+                log.debug(httpExchange.getRequestMethod() + " " + httpExchange.getRequestURI().toString() + " " + httpExchange.getProtocol());
 
                 //request headers
-                log.debug(String.format("%s. request headers:", SERVER_NAME));
                 for (Map.Entry<String, List<String>> entry : httpExchange.getRequestHeaders().entrySet()) {
                     for (String value : entry.getValue()) {
-                        log.debug(String.format("[%s: %s]", entry.getKey(), value));
+                        log.debug(String.format("%s: %s", entry.getKey(), value));
                     }
                 }
 
                 //request method
-                log.debug(String.format("%s. request method: %s", SERVER_NAME, httpExchange.getRequestMethod()));
+                log.debug("\r\n");
             }
         }
 
