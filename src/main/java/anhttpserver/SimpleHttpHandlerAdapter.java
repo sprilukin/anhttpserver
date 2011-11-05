@@ -87,7 +87,7 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      */
     protected void setResponseCode(int code, HttpRequestContext httpRequestContext) {
-        httpRequestContext.setAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY, code);
+        httpRequestContext.setAttribute(RESPONSE_CODE_ATTRIBUTE_KEY, code);
     }
 
     /**
