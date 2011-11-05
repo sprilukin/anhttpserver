@@ -64,6 +64,16 @@ public final class HttpRequestContext {
     }
 
     /**
+     * Sets a request attribute for specified key
+     *
+     * @param key attribute key
+     * @param value attribute value
+     */
+    public void setAttribute(String key, Object value) {
+        httpExchange.setAttribute(key, value);
+    }
+
+    /**
      * Return all request headers.
      *
      * @return all request headers

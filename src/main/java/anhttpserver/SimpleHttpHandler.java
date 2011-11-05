@@ -23,6 +23,7 @@
 package anhttpserver;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -57,6 +58,11 @@ import java.util.Map;
 public interface SimpleHttpHandler {
 
     /**
+     * Key for which server will search to get response size if possible
+     */
+    public static final String RESPONSE_SIZE_ATTRIBUTE_KEY = "anhttpserver.response.size";
+
+    /**
      * Return unmodifiable collection of response headers
      *
      * @return collection of response headers.
@@ -82,6 +88,15 @@ public interface SimpleHttpHandler {
     public int getResponseCode(HttpRequestContext httpRequestContext);
 
     /**
+     * Return response size.
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return response size
+     */
+    public int getResponseSize(HttpRequestContext httpRequestContext);
+
+    /**
      * Return byte array with response.
      *
      * @param httpRequestContext instance of {@link HttpRequestContext} -
@@ -90,4 +105,14 @@ public interface SimpleHttpHandler {
      * @throws IOException if exception occurs during getting response
      */
     public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException;
+
+    /**
+     * Return {@link InputStream} with response.
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return {@link InputStream} with response
+     * @throws IOException if exception occurs during getting response
+     */
+    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException;
 }

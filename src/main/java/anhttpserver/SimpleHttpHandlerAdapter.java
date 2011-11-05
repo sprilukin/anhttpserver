@@ -22,6 +22,9 @@
 
 package anhttpserver;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,5 +72,68 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      */
     public int getResponseCode(HttpRequestContext httpRequestContext) {
         return HttpURLConnection.HTTP_OK;
+    }
+
+    /**
+     * Sets size of the reposnse
+     *
+     * @param size size of the response
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     */
+    protected void setResponseSize(int size, HttpRequestContext httpRequestContext) {
+        httpRequestContext.setAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY, size);
+    }
+
+    /**
+     * By default returns -1 which means that response size is unknown
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return response size
+     */
+    public int getResponseSize(HttpRequestContext httpRequestContext) {
+        Object size = httpRequestContext.getAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY);
+        if (size != null) {
+            return (Integer)size;
+        }
+
+        // Do not allow your implementation to get there -
+        // because your getResponse will be called twice.
+        // this is only applicable for small responses
+        try {
+            return getResponse(httpRequestContext).length;
+        } catch (IOException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * An empty array returned by default
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return empty byte array
+     * @throws IOException if exception occurs
+     */
+    public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+        return new byte[0];
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * In default implementation just call {@link #getResponse(HttpRequestContext)}
+     * and convert it to InputStream.
+     * This is OK for response of small length
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return {@link InputStream} with response
+     * @throws IOException if exception occurs during getting response
+     */
+    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
+        return new ByteArrayInputStream(getResponse(httpRequestContext));
     }
 }

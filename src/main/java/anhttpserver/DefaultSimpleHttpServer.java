@@ -25,10 +25,13 @@ package anhttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -116,7 +119,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             HttpRequestContext httpRequestContext = new HttpRequestContext(httpExchange);
 
             //Call getReponse of passed handler
-            byte[] response = handler.getResponse(httpRequestContext);
+            InputStream response = handler.getResponseAsStream(httpRequestContext);
 
             //Add default headers
             for (Map.Entry<String, String> entry: defaultHeaders.entrySet()) {
@@ -131,15 +134,29 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             }
 
             //Do not write response body for HTTP HEAD request
-            int responseLength =
-                    response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod()) ? response.length : 0;
+            int responseLength = response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod())
+                    ? handler.getResponseSize(httpRequestContext) : 0;
 
             int responseCode = handler.getResponseCode(httpRequestContext);
             httpExchange.sendResponseHeaders(responseCode, responseLength);
 
             logResponse(httpExchange, responseCode);
-            if (responseLength > 0) {
-                httpExchange.getResponseBody().write(response);
+            if (responseLength != 0) {
+                //httpExchange.getResponseBody().write(response);
+                BufferedOutputStream outputStream = new BufferedOutputStream(httpExchange.getResponseBody(), 1024 * 1024);
+
+                //IOUtils.copy(response, outputStream);
+                byte[] buffer = new byte[1024 * 1024];
+                long count = 0;
+                int n = 0;
+                while (-1 != (n = response.read(buffer))) {
+                    outputStream.write(buffer, 0, n);
+                    count += n;
+                }
+
+                response.close();
+                outputStream.flush();
+                outputStream.close();
             }
         }
 
