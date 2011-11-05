@@ -93,6 +93,20 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                     }
                 }
 
+                log.debug("\r\n");
+            }
+        }
+
+        private void logResponse(HttpExchange httpExchange, int responseCode) {
+            if (log.isDebugEnabled()) {
+                //reponse headers
+                log.debug(String.format("Response Code: %s", responseCode));
+                for (Map.Entry<String, List<String>> entry : httpExchange.getResponseHeaders().entrySet()) {
+                    for (String value : entry.getValue()) {
+                        log.debug(String.format("%s: %s", entry.getKey(), value));
+                    }
+                }
+
                 //request method
                 log.debug("\r\n");
             }
@@ -120,8 +134,10 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             int responseLength =
                     response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod()) ? response.length : 0;
 
-            httpExchange.sendResponseHeaders(handler.getResponseCode(httpRequestContext), responseLength);
+            int responseCode = handler.getResponseCode(httpRequestContext);
+            httpExchange.sendResponseHeaders(responseCode, responseLength);
 
+            logResponse(httpExchange, responseCode);
             if (responseLength > 0) {
                 httpExchange.getResponseBody().write(response);
             }
