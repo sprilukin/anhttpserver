@@ -115,6 +115,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
         private void internalHandleRequest(SimpleHttpHandler handler, HttpExchange httpExchange) throws IOException {
             HttpRequestContext httpRequestContext = new HttpRequestContext(httpExchange);
+            handler.cleanContext(httpRequestContext);
 
             //Call getReponse of passed handler
             InputStream response = handler.getResponseAsStream(httpRequestContext);
@@ -125,8 +126,9 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             }
 
             //Add headers from handler
-            if (handler.getResponseHeaders() != null && handler.getResponseHeaders().size() > 0) {
-                for (Map.Entry<String, String> entry: handler.getResponseHeaders().entrySet()) {
+            Map<String, String> responseHeaders = handler.getResponseHeaders(httpRequestContext);
+            if (responseHeaders != null && responseHeaders.size() > 0) {
+                for (Map.Entry<String, String> entry: responseHeaders.entrySet()) {
                     httpExchange.getResponseHeaders().add(entry.getKey(), entry.getValue());
                 }
             }

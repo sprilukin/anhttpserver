@@ -37,31 +37,47 @@ import java.util.Map;
  * @author Sergey Prilukin
  */
 public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
-    private Map<String, String> headers = new HashMap<String, String>();
+
+    /**
+     * Retreive map with response headers from contextAttributes
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     * @return map where hndler can write response headers
+     */
+    protected Map<String, String> getResponseHeadersFromContext(HttpRequestContext httpRequestContext) {
+        Map<String, String> headers = (Map<String, String>)httpRequestContext.getAttribute(RESPONSE_HEADERS_ATTRIBUTE_KEY);
+            if (headers == null) {
+                headers = new HashMap<String, String>();
+                httpRequestContext.setAttribute(RESPONSE_HEADERS_ATTRIBUTE_KEY, headers);
+            }
+
+        return headers;
+    }
 
     /**
      * Utility method which allows several response headers in one call.
      *
      * @param headers response headers which will be sent with response
      */
-    protected void setResponseHeaders(Map<String, String> headers) {
+    protected void setResponseHeaders(Map<String, String> headers, HttpRequestContext httpRequestContext) {
         if (headers != null && headers.size() > 0) {
-            this.headers.putAll(headers);
+            (getResponseHeadersFromContext(httpRequestContext)).putAll(headers);
         }
     }
 
     /**
      * {@inheritDoc}
      */
-    public Map<String, String> getResponseHeaders() {
-        return Collections.unmodifiableMap(headers);
+    public Map<String, String> getResponseHeaders(HttpRequestContext httpRequestContext) {
+        return Collections.unmodifiableMap(getResponseHeadersFromContext(httpRequestContext));
     }
 
     /**
      * {@inheritDoc}
      */
-    public void setResponseHeader(String name, String value) {
-        headers.put(name, value);
+    public void setResponseHeader(String name, String value, HttpRequestContext httpRequestContext) {
+        getResponseHeadersFromContext(httpRequestContext).put(name, value);
     }
 
     /**
@@ -121,6 +137,13 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
         } catch (IOException e) {
             return 0;
         }
+    }
+
+    @Override
+    public void cleanContext(HttpRequestContext httpRequestContext) {
+        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_HEADERS_ATTRIBUTE_KEY, null);
+        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_CODE_ATTRIBUTE_KEY, null);
+        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_SIZE_ATTRIBUTE_KEY, null);
     }
 
     /**

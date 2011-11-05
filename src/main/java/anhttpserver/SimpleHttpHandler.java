@@ -63,24 +63,34 @@ public interface SimpleHttpHandler {
     public static final String RESPONSE_SIZE_ATTRIBUTE_KEY = "anhttpserver.response.size";
 
     /**
-     * Key for which server will search to get response size if possible
+     * Key for which server will search to get response code if possible
      */
     public static final String RESPONSE_CODE_ATTRIBUTE_KEY = "anhttpserver.response.code";
 
     /**
+     * Key for which server will search to get response headers if possible
+     */
+    public static final String RESPONSE_HEADERS_ATTRIBUTE_KEY = "anhttpserver.response.headers";
+
+    /**
      * Return unmodifiable collection of response headers
      *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
      * @return collection of response headers.
      */
-    public Map<String, String> getResponseHeaders();
+    public Map<String, String> getResponseHeaders(HttpRequestContext httpRequestContext);
 
     /**
      * Set a single response header.
      *
+     *
      * @param name name of the header
      * @param value value of the header
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
      */
-    public void setResponseHeader(String name, String value);
+    public void setResponseHeader(String name, String value, HttpRequestContext httpRequestContext);
 
     /**
      * Return response code.
@@ -100,6 +110,15 @@ public interface SimpleHttpHandler {
      * @return response size
      */
     public int getResponseSize(HttpRequestContext httpRequestContext);
+
+    /**
+     * Somewhy in {@link com.sun.net.httpserver.HttpExchange} context attibutes
+     * are not cleaned with each request, so need to clean them manually
+     *
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     */
+    public void cleanContext(HttpRequestContext httpRequestContext);
 
     /**
      * Return byte array with response.
