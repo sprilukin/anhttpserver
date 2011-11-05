@@ -109,7 +109,7 @@ public interface SimpleHttpHandler {
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      * @return response size
      */
-    public int getResponseSize(HttpRequestContext httpRequestContext);
+    public long getResponseSize(HttpRequestContext httpRequestContext);
 
     /**
      * Somewhy in {@link com.sun.net.httpserver.HttpExchange} context attibutes

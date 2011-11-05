@@ -113,7 +113,7 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      * @param httpRequestContext instance of {@link HttpRequestContext} -
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      */
-    protected void setResponseSize(int size, HttpRequestContext httpRequestContext) {
+    protected void setResponseSize(long size, HttpRequestContext httpRequestContext) {
         httpRequestContext.setAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY, size);
     }
 
@@ -123,17 +123,17 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      * @return response size
      */
-    public int getResponseSize(HttpRequestContext httpRequestContext) {
+    public long getResponseSize(HttpRequestContext httpRequestContext) {
         Object size = httpRequestContext.getAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY);
         if (size != null) {
-            return (Integer)size;
+            return (Long)size;
         }
 
         // Do not allow your implementation to get there -
         // because your getResponse will be called twice.
         // this is only applicable for small responses
         try {
-            return getResponse(httpRequestContext).length;
+            return (long)getResponse(httpRequestContext).length;
         } catch (IOException e) {
             return 0;
         }
