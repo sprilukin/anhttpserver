@@ -71,7 +71,23 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      * which means HTTP OK
      */
     public int getResponseCode(HttpRequestContext httpRequestContext) {
+        Object size = httpRequestContext.getAttribute(RESPONSE_CODE_ATTRIBUTE_KEY);
+        if (size != null) {
+            return (Integer)size;
+        }
+
         return HttpURLConnection.HTTP_OK;
+    }
+
+    /**
+     * Sets response code
+     *
+     * @param code code of the response {@see HttpURLConnection}
+     * @param httpRequestContext instance of {@link HttpRequestContext} -
+     *  facade for {@link com.sun.net.httpserver.HttpExchange}
+     */
+    protected void setResponseCode(int code, HttpRequestContext httpRequestContext) {
+        httpRequestContext.setAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY, code);
     }
 
     /**

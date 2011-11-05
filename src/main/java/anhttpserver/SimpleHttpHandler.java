@@ -63,6 +63,11 @@ public interface SimpleHttpHandler {
     public static final String RESPONSE_SIZE_ATTRIBUTE_KEY = "anhttpserver.response.size";
 
     /**
+     * Key for which server will search to get response size if possible
+     */
+    public static final String RESPONSE_CODE_ATTRIBUTE_KEY = "anhttpserver.response.code";
+
+    /**
      * Return unmodifiable collection of response headers
      *
      * @return collection of response headers.

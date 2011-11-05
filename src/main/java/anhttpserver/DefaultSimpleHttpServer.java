@@ -25,13 +25,12 @@ package anhttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -56,13 +55,14 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     //Server info
     public static final String SERVER_HEADER_NAME = "Server";
     public static final String SERVER_NAME = "anhttpserver";
-    public static final String SERVER_VERSION = "0.2.2";
+    public static final String SERVER_VERSION = "0.2.3";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
 
     //Default config
     public static final int DEFAULT_PORT = 8000;
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_MAX_THREADS_COUNT = 1;
+    public static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
     public static final String HTTP_PREFIX = "http://";
     public static final String PORT_DELIMITER = ":";
@@ -75,6 +75,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     private int port = DEFAULT_PORT;
     private String host = DEFAULT_HOST;
     private int maxThreads = DEFAULT_MAX_THREADS_COUNT;
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
     private Map<String, SimpleHttpHandler> handlers = new HashMap<String, SimpleHttpHandler>();
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
@@ -142,55 +143,57 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
             logResponse(httpExchange, responseCode);
             if (responseLength != 0) {
-                //httpExchange.getResponseBody().write(response);
-                BufferedOutputStream outputStream = new BufferedOutputStream(httpExchange.getResponseBody(), 1024 * 1024);
-
-                //IOUtils.copy(response, outputStream);
-                byte[] buffer = new byte[1024 * 1024];
-                long count = 0;
-                int n = 0;
-                while (-1 != (n = response.read(buffer))) {
-                    outputStream.write(buffer, 0, n);
-                    count += n;
-                }
-
-                response.close();
-                outputStream.flush();
-                outputStream.close();
+                copy(response, httpExchange.getResponseBody(), bufferSize);
             }
         }
 
+        /*
+            Do a copy of input stream to an ouptut stream
+         */
+        private long copy(InputStream in, OutputStream out, int bufferSize) throws IOException {
+                byte[] buffer = new byte[bufferSize];
+                long count = 0;
+                int n = 0;
+                while (-1 != (n = in.read(buffer))) {
+                    out.write(buffer, 0, n);
+                    count += n;
+                }
+
+            return count;
+        }
+
         private SimpleHttpHandler findHandler(String path) {
-            StringBuilder sb = new StringBuilder(path);
-            while (sb.lastIndexOf(PATH_DELIMITER) > -1) {
-                if (handlers.containsKey(sb.toString())) {
-                    return handlers.get(sb.toString());
+            synchronized (handlersMonitor) {
+                StringBuilder sb = new StringBuilder(path);
+                while (sb.lastIndexOf(PATH_DELIMITER) > -1) {
+                    if (handlers.containsKey(sb.toString())) {
+                        return handlers.get(sb.toString());
+                    }
+
+                    sb.delete(sb.lastIndexOf(PATH_DELIMITER), sb.length());
+                    if (sb.length() == 0) {
+                        sb.append(PATH_DELIMITER);
+                    }
                 }
 
-                sb.delete(sb.lastIndexOf(PATH_DELIMITER), sb.length());
-                if (sb.length() == 0) {
-                    sb.append(PATH_DELIMITER);
-                }
+                return null;
             }
-
-            return null;
         }
 
         public void handle(HttpExchange httpExchange) throws IOException {
             logRequest(httpExchange);
 
             String path = httpExchange.getRequestURI().getPath();
-            synchronized (handlersMonitor) {
-                try {
-                    SimpleHttpHandler handler = findHandler(path);
-                    if (handler != null) {
-                        internalHandleRequest(handler, httpExchange);
-                    } else {
-                        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
-                    }
-                } finally {
-                    httpExchange.close();
+
+            try {
+                SimpleHttpHandler handler = findHandler(path);
+                if (handler != null) {
+                    internalHandleRequest(handler, httpExchange);
+                } else {
+                    httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
                 }
+            } finally {
+                httpExchange.close();
             }
         }
     };
@@ -231,6 +234,10 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     }
 
     public void setPort(int port) {
+        if (port <= 0) {
+            throw new IllegalArgumentException("Port should be a positive number");
+        }
+
         this.port = port;
     }
 
@@ -243,6 +250,10 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     }
 
     public void setHost(String host) {
+        if (host == null || host.isEmpty()) {
+            throw new IllegalArgumentException("Host should be a non-empty string");
+        }
+
         this.host = host;
     }
 
@@ -251,7 +262,23 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     }
 
     public void setMaxThreads(int maxThreads) {
+        if (maxThreads <= 0) {
+            throw new IllegalArgumentException("maxThreads should be a positive number");
+        }
+
         this.maxThreads = maxThreads;
+    }
+
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    public void setBufferSize(int bufferSize) {
+        if (bufferSize <= 0) {
+            throw new IllegalArgumentException("bufferSize should be a positive number");
+        }
+
+        this.bufferSize = bufferSize;
     }
 
     public void addHandler(String path, SimpleHttpHandler httpHandler) {

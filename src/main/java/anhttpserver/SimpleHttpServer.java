@@ -107,6 +107,23 @@ public interface SimpleHttpServer {
     public void setMaxThreads(int maxThreads);
 
     /**
+     * Return current value of buffer size
+     * which is used to write response
+     *
+     * @return buffer size
+     */
+    public int getBufferSize();
+
+    /**
+     * Set buffer size
+     * which is used to write response
+     * Default is {@code 1024 * 1024} (1Mb)
+     *
+     * @param size size of a buffer
+     */
+    public void setBufferSize(int size);
+
+    /**
      * For given {@code path} set instance of {@link SimpleHttpHandler}
      * which will handle all requests for given path.
      *
