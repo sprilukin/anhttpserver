@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -77,11 +77,8 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     private int maxThreads = DEFAULT_MAX_THREADS_COUNT;
     private int bufferSize = DEFAULT_BUFFER_SIZE;
 
-    private Map<String, SimpleHttpHandler> handlers = new HashMap<String, SimpleHttpHandler>();
-    private Map<String, String> defaultHeaders = new HashMap<String, String>();
-
-    private final Object handlersMonitor = new Object();
-    private final Object headersMonitor = new Object();
+    private Map<String, SimpleHttpHandler> handlers = new Hashtable<String, SimpleHttpHandler>();
+    private Map<String, String> defaultHeaders = new Hashtable<String, String>();
 
     private HttpHandler defaultHandler = new HttpHandler() {
 
@@ -163,21 +160,19 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         }
 
         private SimpleHttpHandler findHandler(String path) {
-            synchronized (handlersMonitor) {
-                StringBuilder sb = new StringBuilder(path);
-                while (sb.lastIndexOf(PATH_DELIMITER) > -1) {
-                    if (handlers.containsKey(sb.toString())) {
-                        return handlers.get(sb.toString());
-                    }
-
-                    sb.delete(sb.lastIndexOf(PATH_DELIMITER), sb.length());
-                    if (sb.length() == 0) {
-                        sb.append(PATH_DELIMITER);
-                    }
+            StringBuilder sb = new StringBuilder(path);
+            while (sb.lastIndexOf(PATH_DELIMITER) > -1) {
+                if (handlers.containsKey(sb.toString())) {
+                    return handlers.get(sb.toString());
                 }
 
-                return null;
+                sb.delete(sb.lastIndexOf(PATH_DELIMITER), sb.length());
+                if (sb.length() == 0) {
+                    sb.append(PATH_DELIMITER);
+                }
             }
+
+            return null;
         }
 
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -283,23 +278,15 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
     public void addHandler(String path, SimpleHttpHandler httpHandler) {
         createHttpServer();
-
-        synchronized (handlersMonitor) {
-            handlers.put(path, httpHandler);
-        }
-
+        handlers.put(path, httpHandler);
         httpServer.createContext(path, defaultHandler);
     }
 
     public void setDefaultResponseHeaders(Map<String, String> defaultHeaders) {
-        synchronized (headersMonitor) {
-            this.defaultHeaders.putAll(defaultHeaders);
-        }
+        this.defaultHeaders.putAll(defaultHeaders);
     }
 
     public void addResponseHeader(String name, String value) {
-        synchronized (headersMonitor) {
-            this.defaultHeaders.put(name, value);
-        }
+        this.defaultHeaders.put(name, value);
     }
 }
