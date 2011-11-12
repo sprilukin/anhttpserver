@@ -116,33 +116,40 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         private void internalHandleRequest(SimpleHttpHandler handler, HttpExchange httpExchange) throws IOException {
             HttpRequestContext httpRequestContext = new HttpRequestContext(httpExchange);
             handler.cleanContext(httpRequestContext);
+            InputStream response = null;
 
-            //Call getReponse of passed handler
-            InputStream response = handler.getResponseAsStream(httpRequestContext);
+            try {
+                //Call getReponse of passed handler
+                response = handler.getResponseAsStream(httpRequestContext);
 
-            //Add default headers
-            for (Map.Entry<String, String> entry: defaultHeaders.entrySet()) {
-                httpExchange.getResponseHeaders().add(entry.getKey(), entry.getValue());
-            }
-
-            //Add headers from handler
-            Map<String, String> responseHeaders = handler.getResponseHeaders(httpRequestContext);
-            if (responseHeaders != null && responseHeaders.size() > 0) {
-                for (Map.Entry<String, String> entry: responseHeaders.entrySet()) {
+                //Add default headers
+                for (Map.Entry<String, String> entry: defaultHeaders.entrySet()) {
                     httpExchange.getResponseHeaders().add(entry.getKey(), entry.getValue());
                 }
-            }
 
-            //Do not write response body for HTTP HEAD request
-            long responseLength = response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod())
-                    ? handler.getResponseSize(httpRequestContext) : 0L;
+                //Add headers from handler
+                Map<String, String> responseHeaders = handler.getResponseHeaders(httpRequestContext);
+                if (responseHeaders != null && responseHeaders.size() > 0) {
+                    for (Map.Entry<String, String> entry: responseHeaders.entrySet()) {
+                        httpExchange.getResponseHeaders().add(entry.getKey(), entry.getValue());
+                    }
+                }
 
-            int responseCode = handler.getResponseCode(httpRequestContext);
-            httpExchange.sendResponseHeaders(responseCode, responseLength);
+                //Do not write response body for HTTP HEAD request
+                long responseLength = response != null && !HTTP_HEAD.equals(httpExchange.getRequestMethod())
+                        ? handler.getResponseSize(httpRequestContext) : 0L;
 
-            logResponse(httpExchange, responseCode);
-            if (responseLength != 0) {
-                copy(response, httpExchange.getResponseBody(), bufferSize);
+                int responseCode = handler.getResponseCode(httpRequestContext);
+                httpExchange.sendResponseHeaders(responseCode, responseLength);
+
+                logResponse(httpExchange, responseCode);
+                if (responseLength != 0) {
+                    copy(response, httpExchange.getResponseBody(), bufferSize);
+                }
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
             }
         }
 
