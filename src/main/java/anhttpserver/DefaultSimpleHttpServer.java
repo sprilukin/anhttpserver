@@ -60,7 +60,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     //Server info
     public static final String SERVER_HEADER_NAME = "Server";
     public static final String SERVER_NAME = "anhttpserver";
-    public static final String SERVER_VERSION = "0.2.3";
+    public static final String SERVER_VERSION = "0.2.4";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
 
     //Default config
