@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,8 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     public static final String PORT_DELIMITER = ":";
     public static final String PATH_DELIMITER = "/";
 
+    public static final SimpleDateFormat REQUEST_DATE_FORMAT = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss.SSS");
+
     private static final Log log = LogFactory.getLog(DefaultSimpleHttpServer.class);
 
     private HttpServer httpServer;
@@ -82,9 +86,9 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
     private HttpHandler defaultHandler = new HttpHandler() {
 
-        private void logRequest(HttpExchange httpExchange) {
+        private void logRequest(HttpExchange httpExchange, int responseCode, long responseLength) {
             if (log.isDebugEnabled()) {
-                //request URI
+                //--Log request
                 log.debug(httpExchange.getRequestMethod() + " " + httpExchange.getRequestURI().toString() + " " + httpExchange.getProtocol());
 
                 //request headers
@@ -95,12 +99,8 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                 }
 
                 log.debug("\r\n");
-            }
-        }
 
-        private void logResponse(HttpExchange httpExchange, int responseCode) {
-            if (log.isDebugEnabled()) {
-                //reponse headers
+                //--LOG reponse
                 log.debug(String.format("Response Code: %s", responseCode));
                 for (Map.Entry<String, List<String>> entry : httpExchange.getResponseHeaders().entrySet()) {
                     for (String value : entry.getValue()) {
@@ -108,8 +108,16 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                     }
                 }
 
-                //request method
                 log.debug("\r\n");
+            } else if (log.isInfoEnabled()) {
+                //Short format
+                String remoteAddress = httpExchange.getRemoteAddress().getHostName();
+                String date = REQUEST_DATE_FORMAT.format(new Date());
+                String method = httpExchange.getRequestMethod();
+                String path = httpExchange.getRequestURI().getPath();
+                String userAgent = httpExchange.getRequestHeaders().get("User-Agent").get(0);
+
+                log.info(String.format("%s [%s] %s %s %s %s %s", remoteAddress, date, method, path, responseCode, responseLength, userAgent));
             }
         }
 
@@ -142,7 +150,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                 int responseCode = handler.getResponseCode(httpRequestContext);
                 httpExchange.sendResponseHeaders(responseCode, responseLength);
 
-                logResponse(httpExchange, responseCode);
+                logRequest(httpExchange, responseCode, responseLength);
                 if (responseLength != 0) {
                     copy(response, httpExchange.getResponseBody(), bufferSize);
                 }
@@ -185,8 +193,6 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         }
 
         public void handle(HttpExchange httpExchange) throws IOException {
-            logRequest(httpExchange);
-
             String path = httpExchange.getRequestURI().getPath();
 
             try {
