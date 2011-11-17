@@ -25,6 +25,7 @@ package anhttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -64,7 +65,6 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     public static final int DEFAULT_PORT = 8000;
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_MAX_THREADS_COUNT = 1;
-    public static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
     public static final String HTTP_PREFIX = "http://";
     public static final String PORT_DELIMITER = ":";
@@ -79,7 +79,6 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     private int port = DEFAULT_PORT;
     private String host = DEFAULT_HOST;
     private int maxThreads = DEFAULT_MAX_THREADS_COUNT;
-    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
     private Map<String, SimpleHttpHandler> handlers = new Hashtable<String, SimpleHttpHandler>();
     private Map<String, String> defaultHeaders = new Hashtable<String, String>();
@@ -152,28 +151,13 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
                 logRequest(httpExchange, responseCode, responseLength);
                 if (responseLength != 0) {
-                    copy(response, httpExchange.getResponseBody(), bufferSize);
+                    IOUtils.copyLarge(response, httpExchange.getResponseBody());
                 }
             } finally {
                 if (response != null) {
                     response.close();
                 }
             }
-        }
-
-        /*
-            Do a copy of input stream to an ouptut stream
-         */
-        private long copy(InputStream in, OutputStream out, int bufferSize) throws IOException {
-                byte[] buffer = new byte[bufferSize];
-                long count = 0;
-                int n = 0;
-                while (-1 != (n = in.read(buffer))) {
-                    out.write(buffer, 0, n);
-                    count += n;
-                }
-
-            return count;
         }
 
         private SimpleHttpHandler findHandler(String path) {
@@ -281,18 +265,6 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         }
 
         this.maxThreads = maxThreads;
-    }
-
-    public int getBufferSize() {
-        return bufferSize;
-    }
-
-    public void setBufferSize(int bufferSize) {
-        if (bufferSize <= 0) {
-            throw new IllegalArgumentException("bufferSize should be a positive number");
-        }
-
-        this.bufferSize = bufferSize;
     }
 
     public void addHandler(String path, SimpleHttpHandler httpHandler) {
