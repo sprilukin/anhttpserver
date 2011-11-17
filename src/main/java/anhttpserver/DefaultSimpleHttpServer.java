@@ -40,6 +40,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Default implementation of {@link SimpleHttpServer}
@@ -70,7 +72,8 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     public static final String PORT_DELIMITER = ":";
     public static final String PATH_DELIMITER = "/";
 
-    public static final SimpleDateFormat REQUEST_DATE_FORMAT = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss.SSS");
+    public static final SimpleDateFormat REQUEST_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    public static final String REMOTE_HOST_REGEXP = "^/([^\\:]+)\\:[\\d]+$";
 
     private static final Log log = LogFactory.getLog(DefaultSimpleHttpServer.class);
 
@@ -110,7 +113,14 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
                 log.debug("\r\n");
             } else if (log.isInfoEnabled()) {
                 //Short format
-                String remoteAddress = httpExchange.getRemoteAddress().getHostName();
+
+                String remoteHost = httpExchange.getRemoteAddress().toString();
+                String remoteAddress = remoteHost;
+                Matcher matcher = Pattern.compile(REMOTE_HOST_REGEXP).matcher(remoteHost);
+                if (matcher.find()) {
+                    remoteAddress = matcher.group(1);
+                }
+
                 String date = REQUEST_DATE_FORMAT.format(new Date());
                 String method = httpExchange.getRequestMethod();
                 String path = httpExchange.getRequestURI().getPath();
