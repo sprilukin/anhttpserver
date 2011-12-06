@@ -39,6 +39,17 @@ import java.util.Map;
 public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
 
     /**
+     * Returns thread-specific request key to put something into
+     * HTTP request attributes since they're not thread safe
+     *
+     * @param key not thread-specific attribute key
+     * @return
+     */
+    private String getThreadSpecificAttributeKey(String key) {
+        String threadSpecificSuffix = String.valueOf(Thread.currentThread().getName().hashCode());
+        return (new StringBuilder(key)).append(threadSpecificSuffix).toString();
+    }
+    /**
      * Retreive map with response headers from contextAttributes
      *
      * @param httpRequestContext instance of {@link HttpRequestContext} -
@@ -46,10 +57,11 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      * @return map where hndler can write response headers
      */
     protected Map<String, String> getResponseHeadersFromContext(HttpRequestContext httpRequestContext) {
-        Map<String, String> headers = (Map<String, String>)httpRequestContext.getAttribute(RESPONSE_HEADERS_ATTRIBUTE_KEY);
+        String responseHeadersAttributeKey = getThreadSpecificAttributeKey(RESPONSE_HEADERS_ATTRIBUTE_KEY);
+        Map<String, String> headers = (Map<String, String>)httpRequestContext.getAttribute(responseHeadersAttributeKey);
             if (headers == null) {
                 headers = new HashMap<String, String>();
-                httpRequestContext.setAttribute(RESPONSE_HEADERS_ATTRIBUTE_KEY, headers);
+                httpRequestContext.setAttribute(responseHeadersAttributeKey, headers);
             }
 
         return headers;
@@ -87,7 +99,8 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      * which means HTTP OK
      */
     public int getResponseCode(HttpRequestContext httpRequestContext) {
-        Object size = httpRequestContext.getAttribute(RESPONSE_CODE_ATTRIBUTE_KEY);
+        String responseCodeAttributeKey = getThreadSpecificAttributeKey(RESPONSE_CODE_ATTRIBUTE_KEY);
+        Object size = httpRequestContext.getAttribute(responseCodeAttributeKey);
         if (size != null) {
             return (Integer)size;
         }
@@ -103,7 +116,8 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      */
     protected void setResponseCode(int code, HttpRequestContext httpRequestContext) {
-        httpRequestContext.setAttribute(RESPONSE_CODE_ATTRIBUTE_KEY, code);
+        String responseCodeAttributeKey = getThreadSpecificAttributeKey(RESPONSE_CODE_ATTRIBUTE_KEY);
+        httpRequestContext.setAttribute(responseCodeAttributeKey, code);
     }
 
     /**
@@ -114,7 +128,8 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      */
     protected void setResponseSize(long size, HttpRequestContext httpRequestContext) {
-        httpRequestContext.setAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY, size);
+        String responseCodeAttributeKey = getThreadSpecificAttributeKey(RESPONSE_SIZE_ATTRIBUTE_KEY);
+        httpRequestContext.setAttribute(responseCodeAttributeKey, size);
     }
 
     /**
@@ -124,7 +139,8 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
      * @return response size
      */
     public long getResponseSize(HttpRequestContext httpRequestContext) {
-        Object size = httpRequestContext.getAttribute(RESPONSE_SIZE_ATTRIBUTE_KEY);
+        String responseCodeAttributeKey = getThreadSpecificAttributeKey(RESPONSE_SIZE_ATTRIBUTE_KEY);
+        Object size = httpRequestContext.getAttribute(responseCodeAttributeKey);
         if (size != null) {
             return (Long)size;
         }
@@ -141,9 +157,9 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
 
     @Override
     public void cleanContext(HttpRequestContext httpRequestContext) {
-        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_HEADERS_ATTRIBUTE_KEY, null);
-        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_CODE_ATTRIBUTE_KEY, null);
-        httpRequestContext.setAttribute(SimpleHttpHandler.RESPONSE_SIZE_ATTRIBUTE_KEY, null);
+        httpRequestContext.setAttribute(getThreadSpecificAttributeKey(RESPONSE_HEADERS_ATTRIBUTE_KEY), null);
+        httpRequestContext.setAttribute(getThreadSpecificAttributeKey(RESPONSE_CODE_ATTRIBUTE_KEY), null);
+        httpRequestContext.setAttribute(getThreadSpecificAttributeKey(RESPONSE_SIZE_ATTRIBUTE_KEY), null);
     }
 
     /**
