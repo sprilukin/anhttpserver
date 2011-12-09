@@ -54,7 +54,7 @@ public abstract class ResponseSizeNeedlessHandlerAdapter extends SimpleHttpHandl
      * in this implementation just call {@link #getResponseInternal(anhttpserver.HttpRequestContext)},
      * sets result of calling available method on response as a response size and return that response.
      */
-    public InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException {
+    public final InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException {
         InputStream response = getResponseInternal(httpRequestContext);
 
         //Don't set response size if it was already set.

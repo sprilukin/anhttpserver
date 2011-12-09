@@ -52,7 +52,7 @@ public abstract class ByteArrayHandlerAdapter extends SimpleHttpHandlerAdapter {
      * sets response size to size of result array and return ByteArrayInputStream as wrapper
      * over that byte array.
      */
-    public InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException {
+    public final InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException {
         byte[] responseAsByteArray = getResponseAsByteArray(httpRequestContext);
 
         //Don't set response size if it was already set.
