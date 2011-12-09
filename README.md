@@ -7,8 +7,8 @@
          SimpleHttpServer server = new DefaultSimpleHttpServer();
          server.start();
 
-         server.addHandler("/index", new SimpleHttpHandlerAdapter() {
-             public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+         server.addHandler("/index", new ByteArrayHandlerAdapter() {
+             public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                  return "Hello world".getBytes();
              }
          });
@@ -21,7 +21,7 @@
     <dependency>
         <groupId>anhttpserver</groupId>
         <artifactId>anhttpserver</artifactId>
-        <version>0.2.5</version>
+        <version>0.2.6</version>
     </dependency>
 
 NOTE: you need to add a maven repository to your pom.xml

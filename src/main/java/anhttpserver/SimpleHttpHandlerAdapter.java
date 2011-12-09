@@ -133,7 +133,9 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
     }
 
     /**
-     * By default returns -1 which means that response size is unknown
+     * By default uses {@link #RESPONSE_SIZE_ATTRIBUTE_KEY} request attribute
+     * to determine size, returns zero if such attribute doesn't exists
+     *
      * @param httpRequestContext instance of {@link HttpRequestContext} -
      *  facade for {@link com.sun.net.httpserver.HttpExchange}
      * @return response size
@@ -143,14 +145,7 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
         Object size = httpRequestContext.getAttribute(responseCodeAttributeKey);
         if (size != null) {
             return (Long)size;
-        }
-
-        // Do not allow your implementation to get there -
-        // because your getResponse will be called twice.
-        // this is only applicable for small responses
-        try {
-            return (long)getResponse(httpRequestContext).length;
-        } catch (IOException e) {
+        } else {
             return 0;
         }
     }
@@ -164,31 +159,6 @@ public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
 
     /**
      * {@inheritDoc}
-     *
-     * An empty array returned by default
-     *
-     * @param httpRequestContext instance of {@link HttpRequestContext} -
-     *  facade for {@link com.sun.net.httpserver.HttpExchange}
-     * @return empty byte array
-     * @throws IOException if exception occurs
      */
-    public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
-        return new byte[0];
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * In default implementation just call {@link #getResponse(HttpRequestContext)}
-     * and convert it to InputStream.
-     * This is OK for response of small length
-     *
-     * @param httpRequestContext instance of {@link HttpRequestContext} -
-     *  facade for {@link com.sun.net.httpserver.HttpExchange}
-     * @return {@link InputStream} with response
-     * @throws IOException if exception occurs during getting response
-     */
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
-        return new ByteArrayInputStream(getResponse(httpRequestContext));
-    }
+    public abstract InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException;
 }

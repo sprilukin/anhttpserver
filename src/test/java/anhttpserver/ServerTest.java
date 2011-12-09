@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -78,9 +79,9 @@ public class ServerTest {
     @Test
     public void basicServerTest() throws Exception {
 
-        server.addHandler("/", new SimpleHttpHandlerAdapter() {
+        server.addHandler("/", new ByteArrayHandlerAdapter() {
             @Override
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 String response = "Hello world!";
                 return response.getBytes();
             }
@@ -89,11 +90,25 @@ public class ServerTest {
         assertEquals("Hello world!", getResult("http://localhost:9999"));
     }
 
+    @Test
+    public void responseSizeNeedlessHandlerAdapterTest() throws Exception {
+
+        server.addHandler("/", new ResponseSizeNeedlessHandlerAdapter() {
+            @Override
+            public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
+                String response = "Hello world!";
+                return new ByteArrayInputStream(response.getBytes());
+            }
+        });
+
+        assertEquals("Hello world!", getResult("http://localhost:9999"));
+    }
+
     @Test(expected = java.io.FileNotFoundException.class)
     public void testHandlerNotFound() throws Exception {
-        server.addHandler("/index1", new SimpleHttpHandlerAdapter() {
+        server.addHandler("/index1", new ByteArrayHandlerAdapter() {
             @Override
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 return httpRequestContext.getRequestURI().getPath().getBytes();
             }
         });
@@ -109,7 +124,7 @@ public class ServerTest {
 
         final AtomicBoolean testPassed = new AtomicBoolean(true);
 
-        class ThreadTestHttpHandlerAdapter extends SimpleHttpHandlerAdapter {
+        class ThreadTestHttpHandlerAdapter extends ByteArrayHandlerAdapter {
             private String result;
             private int timeToSleep;
 
@@ -118,8 +133,8 @@ public class ServerTest {
                 this.timeToSleep = timeToSleep;
             }
 
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
-                setResponseSize(result.length(), httpRequestContext);
+            @Override
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 setResponseHeader(TEST_HEADER, result, httpRequestContext);
 
                 try {
@@ -193,23 +208,23 @@ public class ServerTest {
 
     @Test
     public void testCascadingPath() throws Exception {
-        server.addHandler("/", new SimpleHttpHandlerAdapter() {
+        server.addHandler("/", new ByteArrayHandlerAdapter() {
             @Override
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 return httpRequestContext.getRequestURI().getPath().getBytes();
             }
         });
 
-        server.addHandler("/path1", new SimpleHttpHandlerAdapter() {
+        server.addHandler("/path1", new ByteArrayHandlerAdapter() {
             @Override
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 return "path1".getBytes();
             }
         });
 
-        server.addHandler("/path1/path2", new SimpleHttpHandlerAdapter() {
+        server.addHandler("/path1/path2", new ByteArrayHandlerAdapter() {
             @Override
-            public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+            public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
                 return "path2".getBytes();
             }
         });

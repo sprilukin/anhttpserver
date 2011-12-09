@@ -121,16 +121,6 @@ public interface SimpleHttpHandler {
     public void cleanContext(HttpRequestContext httpRequestContext);
 
     /**
-     * Return byte array with response.
-     *
-     * @param httpRequestContext instance of {@link HttpRequestContext} -
-     *  facade for {@link com.sun.net.httpserver.HttpExchange}
-     * @return byte array with response
-     * @throws IOException if exception occurs during getting response
-     */
-    public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException;
-
-    /**
      * Return {@link InputStream} with response.
      *
      * @param httpRequestContext instance of {@link HttpRequestContext} -
@@ -138,5 +128,5 @@ public interface SimpleHttpHandler {
      * @return {@link InputStream} with response
      * @throws IOException if exception occurs during getting response
      */
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException;
+    public InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException;
 }

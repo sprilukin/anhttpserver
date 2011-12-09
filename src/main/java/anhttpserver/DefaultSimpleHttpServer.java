@@ -60,7 +60,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     //Server info
     public static final String SERVER_HEADER_NAME = "Server";
     public static final String SERVER_NAME = "anhttpserver";
-    public static final String SERVER_VERSION = "0.2.5";
+    public static final String SERVER_VERSION = "0.2.6";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
 
     //Default config
@@ -137,7 +137,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
 
             try {
                 //Call getReponse of passed handler
-                response = handler.getResponseAsStream(httpRequestContext);
+                response = handler.getResponse(httpRequestContext);
 
                 //Add default headers
                 for (Map.Entry<String, String> entry: defaultHeaders.entrySet()) {
