@@ -23,15 +23,12 @@
 package anhttpserver;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
@@ -44,7 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Default implementation of {@link SimpleHttpServer}
+ * Default implementation of {@link HttpServer}
  * Which has predefined host and port.
  *
  * {@link com.sun.net.httpserver.HttpServer} is used
@@ -52,7 +49,7 @@ import java.util.regex.Pattern;
  *
  * @author Sergey Prilukin
  */
-public final class DefaultSimpleHttpServer implements SimpleHttpServer {
+public final class DefaultHttpServer implements HttpServer {
 
     //HTTP request method HEAD
     public static final String HTTP_HEAD = "HEAD";
@@ -60,7 +57,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     //Server info
     public static final String SERVER_HEADER_NAME = "Server";
     public static final String SERVER_NAME = "anhttpserver";
-    public static final String SERVER_VERSION = "0.2.6";
+    public static final String SERVER_VERSION = "0.2.7";
     public static final String FULL_SERVER_NAME = SERVER_NAME + "/" + SERVER_VERSION;
 
     //Default config
@@ -75,18 +72,18 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
     public static final SimpleDateFormat REQUEST_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static final String REMOTE_HOST_REGEXP = "^/([^\\:]+)\\:[\\d]+$";
 
-    private static final Log log = LogFactory.getLog(DefaultSimpleHttpServer.class);
+    private static final Log log = LogFactory.getLog(DefaultHttpServer.class);
 
-    private HttpServer httpServer;
+    private com.sun.net.httpserver.HttpServer httpServer;
 
     private int port = DEFAULT_PORT;
     private String host = DEFAULT_HOST;
     private int maxThreads = DEFAULT_MAX_THREADS_COUNT;
 
-    private Map<String, SimpleHttpHandler> handlers = new Hashtable<String, SimpleHttpHandler>();
+    private Map<String, HttpHandler> handlers = new Hashtable<String, HttpHandler>();
     private Map<String, String> defaultHeaders = new Hashtable<String, String>();
 
-    private HttpHandler defaultHandler = new HttpHandler() {
+    private com.sun.net.httpserver.HttpHandler defaultHandler = new com.sun.net.httpserver.HttpHandler() {
 
         private void logRequest(HttpExchange httpExchange, int responseCode, long responseLength) {
             if (log.isDebugEnabled()) {
@@ -130,7 +127,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             }
         }
 
-        private void internalHandleRequest(SimpleHttpHandler handler, HttpExchange httpExchange) throws IOException {
+        private void internalHandleRequest(HttpHandler handler, HttpExchange httpExchange) throws IOException {
             HttpRequestContext httpRequestContext = new HttpRequestContext(httpExchange);
             handler.cleanContext(httpRequestContext);
             InputStream response = null;
@@ -170,7 +167,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             }
         }
 
-        private SimpleHttpHandler findHandler(String path) {
+        private HttpHandler findHandler(String path) {
             StringBuilder sb = new StringBuilder(path);
             while (sb.lastIndexOf(PATH_DELIMITER) > -1) {
                 if (handlers.containsKey(sb.toString())) {
@@ -190,7 +187,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             String path = httpExchange.getRequestURI().getPath();
 
             try {
-                SimpleHttpHandler handler = findHandler(path);
+                HttpHandler handler = findHandler(path);
                 if (handler != null) {
                     internalHandleRequest(handler, httpExchange);
                 } else {
@@ -206,7 +203,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         }
     };
 
-    public DefaultSimpleHttpServer() {
+    public DefaultHttpServer() {
         defaultHeaders.put(SERVER_HEADER_NAME, FULL_SERVER_NAME);
     }
 
@@ -215,7 +212,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
             synchronized (this) {
                 if (httpServer == null) {
                     try {
-                        httpServer = HttpServer.create();
+                        httpServer = com.sun.net.httpserver.HttpServer.create();
                         httpServer.setExecutor(Executors.newFixedThreadPool(maxThreads));
                         httpServer.bind(new InetSocketAddress(host, port), 0);
                     } catch (IOException e) {
@@ -277,7 +274,7 @@ public final class DefaultSimpleHttpServer implements SimpleHttpServer {
         this.maxThreads = maxThreads;
     }
 
-    public void addHandler(String path, SimpleHttpHandler httpHandler) {
+    public void addHandler(String path, HttpHandler httpHandler) {
         createHttpServer();
         handlers.put(path, httpHandler);
         httpServer.createContext(path, defaultHandler);

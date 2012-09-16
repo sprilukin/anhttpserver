@@ -4,12 +4,12 @@
 
 ### Example
 
-         SimpleHttpServer server = new DefaultSimpleHttpServer();
+         HttpServer server = new DefaultHttpServer();
          server.start();
 
-         server.addHandler("/index", new ByteArrayHandlerAdapter() {
-             public byte[] getResponseAsByteArray(HttpRequestContext httpRequestContext) throws IOException {
-                 return "Hello world".getBytes();
+         server.addHandler("/index", new StringHandlerAdapter() {
+             public byte[] getResponseAsString(HttpRequestContext httpRequestContext) throws IOException {
+                 return "Hello world";
              }
          });
    
@@ -21,7 +21,7 @@
     <dependency>
         <groupId>anhttpserver</groupId>
         <artifactId>anhttpserver</artifactId>
-        <version>0.2.6</version>
+        <version>0.2.7</version>
     </dependency>
 
 NOTE: you need to add a maven repository to your pom.xml

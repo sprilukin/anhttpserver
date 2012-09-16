@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author Sergey Prilukin
  */
-public interface SimpleHttpServer {
+public interface HttpServer {
 
     /**
      * Start HTTP server
@@ -55,7 +55,7 @@ public interface SimpleHttpServer {
      * Default is {@code 8000}.</p>
      *
      * <p>Will take effect only BEFORE first call to
-     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     * {@link #start()} or {@link #addHandler(String, HttpHandler)}</p>
      *
      * @param port tcp port number
      */
@@ -82,7 +82,7 @@ public interface SimpleHttpServer {
      * Default is {@code localhost}
      *
      * <p>Will take effect only BEFORE first call to
-     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     * {@link #start()} or {@link #addHandler(String, HttpHandler)}</p>
      *
      * @param host host to set
      */
@@ -100,14 +100,14 @@ public interface SimpleHttpServer {
      * Default is {@code 1}
      *
      * <p>Will take effect only BEFORE first call to
-     * {@link #start()} or {@link #addHandler(String, SimpleHttpHandler)}</p>
+     * {@link #start()} or {@link #addHandler(String, HttpHandler)}</p>
      *
      * @param maxThreads max count of threads
      */
     public void setMaxThreads(int maxThreads);
 
     /**
-     * For given {@code path} set instance of {@link SimpleHttpHandler}
+     * For given {@code path} set instance of {@link HttpHandler}
      * which will handle all requests for given path.
      *
      *
@@ -118,10 +118,10 @@ public interface SimpleHttpServer {
      *  you should call
      *      <code>addHandler("/index", httpHandler)</code>
      *
-     * @param httpHandler instance of {@link SimpleHttpHandler} which will handle
+     * @param httpHandler instance of {@link HttpHandler} which will handle
      * all requests for given path
      */
-    public void addHandler(String path, SimpleHttpHandler httpHandler);
+    public void addHandler(String path, HttpHandler httpHandler);
 
     /**
      * Set response headers which will always be sent for all requests.

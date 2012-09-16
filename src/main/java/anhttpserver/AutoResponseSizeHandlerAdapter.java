@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Implementation of {@link anhttpserver.SimpleHttpHandler}, which
+ * Implementation of {@link HttpHandler}, which
  * calculates response size based on {@link java.io.InputStream#available()} method,
  * which may be not always correct.
  * 
@@ -35,7 +35,7 @@ import java.io.InputStream;
  *
  * @author Sergey Prilukin
  */
-public abstract class ResponseSizeNeedlessHandlerAdapter extends SimpleHttpHandlerAdapter {
+public abstract class AutoResponseSizeHandlerAdapter extends SimpleHttpHandlerAdapter {
 
     /**
      * Implementations should override this method instead of {@link #getResponse(anhttpserver.HttpRequestContext)}.

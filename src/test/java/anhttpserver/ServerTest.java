@@ -32,24 +32,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Very basic tests for {@link DefaultSimpleHttpServer}
+ * Very basic tests for {@link DefaultHttpServer}
  *
  * @author Sergey Prilukin
  */
 public class ServerTest {
 
-    private SimpleHttpServer server;
+    private HttpServer server;
 
     @Before
     public void init() {
-        server = new DefaultSimpleHttpServer();
+        server = new DefaultHttpServer();
         server.setHost("0.0.0.0");
         server.setPort(9999);
         server.setMaxThreads(3);
@@ -91,9 +90,9 @@ public class ServerTest {
     }
 
     @Test
-    public void responseSizeNeedlessHandlerAdapterTest() throws Exception {
+    public void autoResponseSizeHandlerAdapterTest() throws Exception {
 
-        server.addHandler("/", new ResponseSizeNeedlessHandlerAdapter() {
+        server.addHandler("/", new AutoResponseSizeHandlerAdapter() {
             @Override
             public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
                 String response = "Hello world!";
@@ -102,6 +101,32 @@ public class ServerTest {
         });
 
         assertEquals("Hello world!", getResult("http://localhost:9999"));
+    }
+
+    @Test
+    public void stringHandlerAdapterTest() throws Exception {
+
+        server.addHandler("/", new StringHandlerAdapter() {
+            @Override
+            public String getResponseAsString(HttpRequestContext httpRequestContext) throws IOException {
+                return "Hello world!";
+            }
+        });
+
+        assertEquals("Hello world!", getResult("http://localhost:9999"));
+    }
+
+    @Test(expected = java.net.SocketException.class)
+    public void testNullForStringHandlerAdapterTest() throws Exception {
+
+        server.addHandler("/", new StringHandlerAdapter() {
+            @Override
+            public String getResponseAsString(HttpRequestContext httpRequestContext) throws IOException {
+                return null;
+            }
+        });
+
+        assertEquals(null, getResult("http://localhost:9999"));
     }
 
     @Test(expected = java.io.FileNotFoundException.class)

@@ -22,7 +22,6 @@
 
 package anhttpserver;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -31,12 +30,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Adapter which implements most methods of {@link SimpleHttpHandler}
- * So descendants should only implement method {@link SimpleHttpHandler#getResponse(HttpRequestContext)}
+ * Adapter which implements most methods of {@link HttpHandler}
+ * So descendants should only implement method {@link HttpHandler#getResponse(HttpRequestContext)}
  *
  * @author Sergey Prilukin
  */
-public abstract class SimpleHttpHandlerAdapter implements SimpleHttpHandler {
+public abstract class SimpleHttpHandlerAdapter implements HttpHandler {
 
     /**
      * Returns thread-specific request key to put something into

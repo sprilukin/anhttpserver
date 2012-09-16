@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Implementation of {@link SimpleHttpHandler}, which
+ * Implementation of {@link HttpHandler}, which
  * subclasses needs to return result as a byte array.
  *
  * @author Sergey Prilukin

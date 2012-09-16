@@ -33,7 +33,7 @@ import java.util.Map;
  *     Example of usage:<br/>
  *
  *     <pre>
- *         SimpleHttpServer server = new DefaultSimpleHttpServer();
+ *         HttpServer server = new DefaultHttpServer();
  *         server.start();
  *
  *         server.addHandler("/index", new SimpleHttpHandlerAdapter() {
@@ -49,13 +49,13 @@ import java.util.Map;
  *
  *     <p>
  *         All methods declared here will be used by implementations of
- *         SimpleHttpServer.
+ *         HttpServer.
  *     </p>
  * </p>
  *
  * @author Sergey Prilukin
  */
-public interface SimpleHttpHandler {
+public interface HttpHandler {
 
     /**
      * Key for which server will search to get response size if possible
